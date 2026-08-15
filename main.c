@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "sha256.h"
+#include "miner.h"
 
 static void print_hex(const uint8_t *data, size_t len)
 {
@@ -93,14 +94,29 @@ int main(void)
     printf("\nExpected:\n");
     printf("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\n");
 
-    printf("\nPress START to exit.");
+    printf("\nPress A to start mining benchmark.\n");
+    printf("Press START to exit.");
 
     while (aptMainLoop())
     {
         hidScanInput();
 
-        if (hidKeysDown() & KEY_START)
+        u32 kDown = hidKeysDown();
+
+        if (kDown & KEY_START)
             break;
+
+        if (kDown & KEY_A)
+        {
+            /* miner_run() overwrites the header's nonce (and possibly
+             * timestamp) fields, but that's fine - we don't need the
+             * original values again after this point. */
+            miner_run(header);
+
+            consoleClear();
+            printf("Press A to start mining benchmark.\n");
+            printf("Press START to exit.");
+        }
 
         gfxFlushBuffers();
         gfxSwapBuffers();
